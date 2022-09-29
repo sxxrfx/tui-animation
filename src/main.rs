@@ -1,6 +1,6 @@
 use std::io::{self, stdin, stdout};
 use crossterm::event::{poll, read, Event};
-use cgmath::Vector2;
+use cgmath::{Vector2, dot, ElementWise};
 use std::thread::sleep;
 use std::time;
 #[derive(Clone,Debug, Copy)]
@@ -9,9 +9,10 @@ enum Pixel {
     Full
 }
 type V2ii = Vector2<i32>;
+type V2ff = Vector2<f32>;
 
 
-const WIDTH: usize = 40;
+const WIDTH: usize = 80;
 const HEIGHT: usize = 40;
 const LEN_A: usize = WIDTH * HEIGHT;
 const LEN_B: usize = LEN_A /2;
@@ -33,12 +34,16 @@ impl ScreenBuffer {
     }
 
     fn show(&self){
+        println!("+--------------------------------------------------------------------------------+");
         let mut i = 0;
         for _ in 0..(HEIGHT/2) {
             let s = String::from_iter(&self.b[i..i+WIDTH]);
-            println!("{}", s);
+            print!("|");
+            print!("{}", s);
+            println!("|");
             i += WIDTH
         }
+        println!("+--------------------------------------------------------------------------------+");
     }
     fn circle(&mut self, pos: V2ii, r: i32){
         let x1 = pos.x;
@@ -102,17 +107,28 @@ impl ScreenBuffer {
 
 fn main() {
     let mut D = ScreenBuffer::init();
-    let pos = V2ii::new(20, 20);
-    let r = 10;
-    D.circle(pos, r);
-    D.show();
     // let game = true;
     let one_micro = time::Duration::from_micros(1);
     let fps = one_micro * 1000 * 1000 / 30;
-    // loop {
-    //     println!("Hello");
-
-    //     std::thread::sleep(fps);
-    // }
+    let mut pos = V2ii::new(0, 0);
+    let mut r = 6;
+    let mut acceleration = -100;
+    let mut velocity = 10;
+    let c = V2ii::new(0, HEIGHT as i32 - 1);
+    let d = V2ii::new(-1, 1);
+    println!("{:?}", -c + pos);
+    let mut i = 0;
+    let turns = 4;
+    loop {
+        if i > turns {
+            break;
+        }
+        D.circle((c - pos).mul_element_wise(d) , r);
+        // D.circle(p, r);
+        D.show();
+        
+        std::thread::sleep(fps);
+        i+= 1;
+    }
 
 }
